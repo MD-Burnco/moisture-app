@@ -13,14 +13,10 @@ export default function MoistureCalculator() {
   const wet = 1;
   const [dry, setDry] = useState(1);
   const [result, setResult] = useState(null);
-  const [offlineReady, setOfflineReady] = useState(false);
 
   useEffect(() => {
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker
-        .register("/sw.js")
-        .then(() => setOfflineReady(true))
-        .catch(() => console.log("SW failed"));
+      navigator.serviceWorker.register("/sw.js");
     }
   }, []);
 
@@ -35,21 +31,63 @@ export default function MoistureCalculator() {
   };
 
   return (
-    <div style={{ padding: 20, maxWidth: 500, margin: "auto" }}>
-      <div
-        style={{
-          border: `2px solid ${burncoRed}`,
-          borderRadius: 12,
-          padding: 20,
-        }}
-      >
-        <h1 style={{ color: burncoRed }}>Moisture Calculator</h1>
+    <div style={{ padding: 20, maxWidth: 500, margin: "auto", fontFamily: "sans-serif" }}>
+      <div style={{ border: `2px solid ${burncoRed}`, borderRadius: 10, padding: 20 }}>
+        <h2 style={{ color: burncoRed }}>Moisture Calculator</h2>
 
-        <p>Works offline after first load ✅</p>
-
-        {offlineReady && (
-          <p style={{ color: "green" }}>Offline Mode Ready</p>
-        )}
-
-        <label>Aggregate Type</label>
+        <label>Aggregate</label>
         <select
+          value={selected}
+          onChange={(e) => setSelected(e.target.value)}
+          style={{ width: "100%", padding: 8 }}
+        >
+          {Object.entries(aggregates).map(([key, a]) => (
+            <option key={key} value={key}>
+              {a.label} ({a.absorption}%)
+            </option>
+          ))}
+        </select>
+
+        <br /><br />
+
+        <label>Wet (kg)</label>
+        <input value={wet} disabled style={{ width: "100%", padding: 8 }} />
+
+        <br /><br />
+
+        <label>Dry (kg)</label>
+        <input
+          type="number"
+          value={dry}
+          onChange={(e) => setDry(parseFloat(e.target.value))}
+          style={{ width: "100%", padding: 8 }}
+        />
+
+        <br /><br />
+
+        <button
+          onClick={calculate}
+          style={{
+            width: "100%",
+            padding: 10,
+            background: burncoRed,
+            color: "white",
+            border: "none",
+          }}
+        >
+          Calculate
+        </button>
+
+        {result && (
+          <div style={{ marginTop: 15 }}>
+            <p>Uncorrected Moisture: {result.moistureContent.toFixed(2)}%</p>
+            <p>Absorption: {result.absorption.toFixed(2)}%</p>
+            <h3 style={{ color: burncoRed }}>
+              Corrected Moisture: {result.correctedMoisture.toFixed(2)}%
+            </h3>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
