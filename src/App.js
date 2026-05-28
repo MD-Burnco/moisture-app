@@ -11,7 +11,9 @@ export default function MoistureCalculator() {
 
   const [selected, setSelected] = useState("sand");
   const wet = 1;
-  const [dry, setDry] = useState(1);
+
+  // ✅ Start at 0.000 and store as string for better input control
+  const [dry, setDry] = useState("0.000");
   const [result, setResult] = useState(null);
 
   useEffect(() => {
@@ -20,11 +22,34 @@ export default function MoistureCalculator() {
     }
   }, []);
 
+  const handleDryChange = (e) => {
+    let value = e.target.value;
+
+    // ✅ Auto add leading zero for decimals
+    if (value === ".") {
+      value = "0.";
+    } else if (value.startsWith(".")) {
+      value = "0" + value;
+    }
+
+    setDry(value);
+  };
+
+  const handleBlur = () => {
+    let num = parseFloat(dry);
+    if (!isNaN(num)) {
+      setDry(num.toFixed(3));
+    } else {
+      setDry("0.000");
+    }
+  };
+
   const calculate = () => {
-    if (!dry) return;
+    const dryNum = parseFloat(dry);
+    if (!dryNum) return;
 
     const absorption = aggregates[selected].absorption;
-    const moistureContent = ((wet - dry) / dry) * 100;
+    const moistureContent = ((wet - dryNum) / dryNum) * 100;
     const correctedMoisture = moistureContent - absorption;
 
     setResult({ moistureContent, correctedMoisture, absorption });
@@ -58,8 +83,11 @@ export default function MoistureCalculator() {
         <label>Dry (kg)</label>
         <input
           type="number"
+          step="0.001"                // ✅ Arrow increment
+          min="0"
           value={dry}
-          onChange={(e) => setDry(parseFloat(e.target.value))}
+          onChange={handleDryChange} // ✅ Custom input handling
+          onBlur={handleBlur}        // ✅ Format to 3 decimals
           style={{ width: "100%", padding: 8 }}
         />
 
